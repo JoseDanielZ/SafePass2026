@@ -83,7 +83,6 @@ fun MainScreen() {
                 Text("Registrar")
             }
 
-            // Mostramos algo distinto dependiendo del estado actual
             when (val s = estado) {
 
                 // Pantalla inicial: solo un mensaje de ayuda
