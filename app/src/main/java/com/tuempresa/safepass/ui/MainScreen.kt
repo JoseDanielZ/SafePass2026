@@ -18,7 +18,16 @@ fun MainScreen() {
     // Guardamos lo que el usuario escribe en cada campo
     var nombre      by remember { mutableStateOf("") }
     var edad        by remember { mutableStateOf("") }
+
+    // Tipo de entrada seleccionado
+    // Lo inicializamos vacío para mantener el flujo de validación
     var tipoEntrada by remember { mutableStateOf("") }
+
+    // Lista de Opciones permitidas para el tipo de entrada
+    val opcionesEntrada = listOf("General", "VIP", "Staff")
+
+    // Se controla si el menú desplegable estpa abierto o cerrado
+    var expanded by remember { mutableStateOf(false) }
 
     // Estado de la pantalla: empieza en Idle
     var estado by remember { mutableStateOf<RegistroState>(RegistroState.Idle) }
@@ -57,12 +66,39 @@ fun MainScreen() {
             )
 
             // Campo: Tipo de entrada
-            OutlinedTextField(
-                value         = tipoEntrada,
-                onValueChange = { tipoEntrada = it },
-                label         = { Text("Tipo de entrada (General / VIP / Staff)") },
-                modifier      = Modifier.fillMaxWidth()
-            )
+            // Se utiliza un dropdown controlado.
+            ExposedDropdownMenuBox(
+                expanded = expanded,
+                onExpandedChange = {expanded = !expanded}
+            ) {
+                OutlinedTextField(
+                    value = tipoEntrada,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text ("Tipo Entrada")},
+                    placeholder = {Text ("Seleccione una opción")},
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .menuAnchor()
+                )
+                ExposedDropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = {expanded = false}
+                ) {
+                    opcionesEntrada.forEach { opcion ->
+                        DropdownMenuItem(
+                            text = {Text (opcion) },
+                            onClick = {
+                                tipoEntrada = opcion
+                                expanded = false
+                            }
+                        )
+                    }
+                }
+            }
 
             // Botón Registrar
             Button(

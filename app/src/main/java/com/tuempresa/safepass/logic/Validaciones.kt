@@ -24,9 +24,12 @@ fun validarAsistente(
             RegistroState.Error("El nombre no puede estar vacío")
 
         } else if (edad == null) {
-            RegistroState.Error("La edad es inválida o está vacía")
+            RegistroState.Error("Edad no válida. Intentelo denuevo.")
 
-        } else if (!edad.esMayorDeEdad()) {
+        } else if (edad <= 0 || edad >= 100) {
+            RegistroState.Error("Edad no válida. Intentelo denuevo.")
+
+        }else if (!edad.esMayorDeEdad()) {
             RegistroState.Error("El asistente es menor de edad")
 
         } else {
