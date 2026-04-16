@@ -8,9 +8,7 @@ fun Int.esMayorDeEdad(): Boolean = this >= 18
 fun procesarAsistente(
     asistente: Asistente,
     validacionExtra: (Asistente) -> Boolean
-): Boolean {
-    return validacionExtra(asistente)
-}
+): Boolean = validacionExtra(asistente)
 
 fun validarAsistente(
     nombre: String?,
@@ -31,11 +29,21 @@ fun validarAsistente(
 
         } else {
 
-            val asistente = Asistente(
-                nombre = nombreSeguro,
-                edad = edad,
-                tipoEntrada = tipoEntrada?.trim()?.ifBlank { "General" } ?: "General"
+            val asistenteBase = Asistente(
+                nombre = "",
+                edad = null,
+                tipoEntrada = ""
             )
+
+            val asistente = asistenteBase
+                .copy(
+                    nombre = nombreSeguro,
+                    edad = edad,
+                    tipoEntrada = tipoEntrada ?: "General"
+                )
+                .apply {
+
+                }
 
             val valido = procesarAsistente(asistente) {
                 it.tipoEntrada.isNotBlank()
