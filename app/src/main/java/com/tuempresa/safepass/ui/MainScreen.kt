@@ -20,7 +20,7 @@ fun MainScreen() {
     var edad        by remember { mutableStateOf("") }
     var tipoEntrada by remember { mutableStateOf("") }
 
-    // Estado de la pantalla: empieza en Idle (esperando datos)
+    // Estado de la pantalla: empieza en Idle
     var estado by remember { mutableStateOf<RegistroState>(RegistroState.Idle) }
 
     Scaffold(
@@ -47,7 +47,7 @@ fun MainScreen() {
                 modifier      = Modifier.fillMaxWidth()
             )
 
-            // Campo: Edad (solo números)
+            // Campo: Edad
             OutlinedTextField(
                 value           = edad,
                 onValueChange   = { edad = it },
@@ -93,7 +93,7 @@ fun MainScreen() {
 
                 // Registro exitoso: mostramos los datos con plantillas ${}
                 is RegistroState.Success -> {
-                    Text("✅ Registro exitoso", fontWeight = FontWeight.Bold)
+                    Text("Registro exitoso", fontWeight = FontWeight.Bold)
                     Text("Nombre: ${s.asistente.nombre}")
                     Text("Edad: ${s.asistente.edad ?: "No especificada"}")
                     Text("Tipo de entrada: ${s.asistente.tipoEntrada}")
@@ -101,7 +101,7 @@ fun MainScreen() {
 
                 // Error: mostramos el mensaje del problema
                 is RegistroState.Error -> {
-                    Text("❌ Error: ${s.mensaje}", color = MaterialTheme.colorScheme.error)
+                    Text("Error: ${s.mensaje}", color = MaterialTheme.colorScheme.error)
                 }
             }
         }
