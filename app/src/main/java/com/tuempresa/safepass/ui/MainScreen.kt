@@ -1,182 +1,107 @@
 package com.tuempresa.safepass.ui
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.tuempresa.safepass.logic.procesarAsistente
+import com.tuempresa.safepass.logic.validarAsistente
 import com.tuempresa.safepass.state.RegistroState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen() {
 
-    // ─── Estado de los campos de texto ───────────────────────────────────────
-    var nombreInput    by remember { mutableStateOf("") }
-    var edadInput      by remember { mutableStateOf("") }
-    var tipoEntradaInput by remember { mutableStateOf("") }
+    // Guardamos lo que el usuario escribe en cada campo
+    var nombre      by remember { mutableStateOf("") }
+    var edad        by remember { mutableStateOf("") }
+    var tipoEntrada by remember { mutableStateOf("") }
 
-    // ─── Estado de la UI (Idle por defecto) ──────────────────────────────────
-    var registroState: RegistroState by remember { mutableStateOf(RegistroState.Idle) }
+    // Estado de la pantalla: empieza en Idle (esperando datos)
+    var estado by remember { mutableStateOf<RegistroState>(RegistroState.Idle) }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {
-                    Text(
-                        text = "SafePass 2026 — TechEvent",
-                        fontWeight = FontWeight.Bold
-                    )
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor    = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary
-                )
+                title = { Text("SafePass 2026") }
             )
         }
-    ) { innerPadding ->
+    ) { padding ->
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
-                .padding(horizontal = 24.dp, vertical = 16.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement   = Arrangement.spacedBy(16.dp),
-            horizontalAlignment   = Alignment.CenterHorizontally
+                .padding(padding)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-
-            // ─── Formulario ──────────────────────────────────────────────────
-            Text(
-                text  = "Registro de Asistente",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.SemiBold
-            )
 
             // Campo: Nombre
             OutlinedTextField(
-                value         = nombreInput,
-                onValueChange = { nombreInput = it },
-                label         = { Text("Nombre completo") },
-                singleLine    = true,
+                value         = nombre,
+                onValueChange = { nombre = it },
+                label         = { Text("Nombre") },
                 modifier      = Modifier.fillMaxWidth()
             )
 
-            // Campo: Edad — usa toIntOrNull() + Elvis ?: para nunca crashear
+            // Campo: Edad (solo números)
             OutlinedTextField(
-                value         = edadInput,
-                onValueChange = { edadInput = it },
-                label         = { Text("Edad") },
-                singleLine    = true,
+                value           = edad,
+                onValueChange   = { edad = it },
+                label           = { Text("Edad") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier      = Modifier.fillMaxWidth()
+                modifier        = Modifier.fillMaxWidth()
             )
 
-            // Campo: Tipo de Entrada
+            // Campo: Tipo de entrada
             OutlinedTextField(
-                value         = tipoEntradaInput,
-                onValueChange = { tipoEntradaInput = it },
+                value         = tipoEntrada,
+                onValueChange = { tipoEntrada = it },
                 label         = { Text("Tipo de entrada (General / VIP / Staff)") },
-                singleLine    = true,
                 modifier      = Modifier.fillMaxWidth()
             )
 
-            // ─── Botón Registrar ─────────────────────────────────────────────
+            // Botón Registrar
             Button(
                 onClick = {
-                    // toIntOrNull() + Elvis: si la edad no es número válido → null
-                    val edadParseada: Int? = edadInput.trim().toIntOrNull()
+                    // toIntOrNull() devuelve null si el texto no es un número válido
+                    // Así evitamos que la app se cierre con un crash
+                    val edadNumero: Int? = edad.trim().toIntOrNull()
 
-                    // procesarAsistente() es la Higher-Order Function de Kathe;
-                    // recibe los inputs y una lambda de validación de prioridad.
-                    registroState = procesarAsistente(
-                        nombreRaw      = nombreInput.trim(),
-                        edadRaw        = edadParseada,
-                        tipoEntradaRaw = tipoEntradaInput.trim()
-                    ) { asistente ->
-                        // Lambda de validación de prioridad:
-                        // VIP tienen acceso prioritario sin restricción adicional.
-                        asistente.tipoEntrada.equals("VIP", ignoreCase = true)
-                    }
+                    // Llamamos a la función de validación con los tres datos
+                    estado = validarAsistente(
+                        nombre      = nombre,
+                        edad        = edadNumero,
+                        tipoEntrada = tipoEntrada
+                    )
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp)
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Text(text = "Registrar", fontSize = 16.sp)
+                Text("Registrar")
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            // Mostramos algo distinto dependiendo del estado actual
+            when (val s = estado) {
 
-            // ─── when exhaustivo sobre RegistroState ─────────────────────────
-            when (val state = registroState) {
-
-                // Estado inicial: no muestra nada extra
+                // Pantalla inicial: solo un mensaje de ayuda
                 is RegistroState.Idle -> {
-                    Text(
-                        text  = "Complete los campos y presione Registrar.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Text("Ingrese los datos del asistente y presione Registrar.")
                 }
 
-                // Estado éxito: muestra resumen con plantillas de cadena ${}
+                // Registro exitoso: mostramos los datos con plantillas ${}
                 is RegistroState.Success -> {
-                    val asistente = state.asistente
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors   = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer
-                        )
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Text(
-                                text       = "✅ Registro Exitoso",
-                                fontWeight = FontWeight.Bold,
-                                fontSize   = 18.sp,
-                                color      = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
-                            Divider()
-                            Text(text = "👤 Nombre      : ${asistente.nombre}")
-                            Text(text = "🎂 Edad        : ${asistente.edad ?: "No especificada"}")
-                            Text(text = "🎟️ Tipo entrada: ${asistente.tipoEntrada}")
-                        }
-                    }
+                    Text("✅ Registro exitoso", fontWeight = FontWeight.Bold)
+                    Text("Nombre: ${s.asistente.nombre}")
+                    Text("Edad: ${s.asistente.edad ?: "No especificada"}")
+                    Text("Tipo de entrada: ${s.asistente.tipoEntrada}")
                 }
 
-                // Estado error: muestra el mensaje descriptivo
+                // Error: mostramos el mensaje del problema
                 is RegistroState.Error -> {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors   = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.errorContainer
-                        )
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text(
-                                text       = "❌ Error en el registro",
-                                fontWeight = FontWeight.Bold,
-                                fontSize   = 18.sp,
-                                color      = MaterialTheme.colorScheme.onErrorContainer
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text  = state.mensaje,
-                                color = MaterialTheme.colorScheme.onErrorContainer
-                            )
-                        }
-                    }
+                    Text("❌ Error: ${s.mensaje}", color = MaterialTheme.colorScheme.error)
                 }
             }
         }
