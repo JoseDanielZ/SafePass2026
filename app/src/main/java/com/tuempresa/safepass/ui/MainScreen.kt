@@ -91,7 +91,7 @@ fun MainScreen() {
                     Text("Ingrese los datos del asistente y presione Registrar.")
                 }
 
-                // Registro exitoso: mostramos los datos con plantillas ${}
+                // Registro exitoso: mostramos los datos con plantillas
                 is RegistroState.Success -> {
                     Text("Registro exitoso", fontWeight = FontWeight.Bold)
                     Text("Nombre: ${s.asistente.nombre}")
