@@ -1,4 +1,7 @@
 package com.tuempresa.safepass.model
 
-class Asistente {
-}
+data class Asistente(
+    val nombre: String,
+    val edad: Int?,
+    val tipoEntrada: String
+)
